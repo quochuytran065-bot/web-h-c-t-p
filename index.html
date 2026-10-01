@@ -16,6 +16,74 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+        <!-- ================= BẮT ĐẦU CODE CHATBOT AI ================= -->
+    <style>
+      #chat-toggle-btn { position: fixed; bottom: 20px; right: 20px; background: #007bff; color: white; border: none; padding: 12px 20px; border-radius: 50px; cursor: pointer; z-index: 9999; box-shadow: 0 4px 6px rgba(0,0,0,0.1); font-family: sans-serif; font-weight: bold; }
+      #ai-chat-container { position: fixed; bottom: 80px; right: 20px; width: 320px; background: white; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); display: flex; flex-direction: column; overflow: hidden; z-index: 9999; transition: 0.3s; font-family: sans-serif; }
+      #ai-chat-container.hidden { display: none; }
+      #chat-header { background: #007bff; color: white; padding: 15px; display: flex; justify-content: space-between; font-weight: bold; }
+      #chat-header button { background: none; border: none; color: white; cursor: pointer; font-size: 16px; }
+      #chat-messages { height: 300px; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; background: #f9f9f9; font-size: 14px; }
+      .msg { padding: 10px; border-radius: 8px; max-width: 85%; line-height: 1.4; }
+      .ai-msg { background: #e3f2fd; align-self: flex-start; color: #333; }
+      .user-msg { background: #007bff; color: white; align-self: flex-end; }
+      #chat-input-area { display: flex; padding: 10px; border-top: 1px solid #ddd; }
+      #user-input { flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 4px; outline: none; }
+      #chat-input-area button { background: #007bff; color: white; border: none; padding: 8px 12px; margin-left: 5px; border-radius: 4px; cursor: pointer; }
+    </style>
+
+    <button id="chat-toggle-btn" onclick="toggleChat()">💬 Hỏi AI</button>
+
+    <div id="ai-chat-container" class="hidden">
+        <div id="chat-header">
+            <span>Trợ lý AI</span>
+            <button onclick="toggleChat()">✖</button>
+        </div>
+        <div id="chat-messages" id="chat-messages">
+            <div class="msg ai-msg">Chào bạn! Bạn cần hỏi gì về bài học hôm nay?</div>
+        </div>
+        <div id="chat-input-area">
+            <input type="text" id="user-input" placeholder="Nhập câu hỏi..." onkeypress="if(event.key === 'Enter') sendAiMessage()">
+            <button onclick="sendAiMessage()">Gửi</button>
+        </div>
+    </div>
+
+    <script>
+        function toggleChat() {
+            document.getElementById('ai-chat-container').classList.toggle('hidden');
+        }
+
+        async function sendAiMessage() {
+            const input = document.getElementById('user-input');
+            const message = input.value.trim();
+            if (!message) return;
+
+            const chatMessages = document.getElementById('chat-messages');
+            chatMessages.innerHTML += `<div class="msg user-msg">${message}</div>`;
+            input.value = '';
+            
+            const typingId = 'msg-' + Date.now();
+            chatMessages.innerHTML += `<div id="${typingId}" class="msg ai-msg">Đang suy nghĩ...</div>`;
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            try {
+                // Thay 'YOUR_GEMINI_API_KEY' bằng API Key thật của bạn
+                const apiKey = 'YOUR_GEMINI_API_KEY'; 
+                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contents: [{ parts: [{ text: message }] }] })
+                });
+                const data = await res.json();
+                const reply = data.candidates[0].content.parts[0].text;
+                document.getElementById(typingId).innerText = reply;
+            } catch (err) {
+                document.getElementById(typingId).innerText = "Lỗi kết nối AI.";
+            }
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+    </script>
+    <!-- ================= KẾT THÚC CODE CHATBOT AI ================= -->
   </body>
 </html>
 
